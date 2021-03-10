@@ -47,53 +47,56 @@ class JWT {
 		$timestamp = is_null( static::$timestamp ) ? time() : static::$timestamp;
 		if ( empty( $key ) ) {
 			throw new Exception(
-				__( 'Key may not be empty', 'itf-jwt-auth' ),
+				'Key may not be empty',
 				ErrorCodes::ERR_EMPTY_KEY
 			);
 			
 		}
+		
 		$tks = explode( '.', $jwt );
 
 		if ( count( $tks ) != 3 ) {
 			throw new Exception(
-				__( 'Wrong number of segments', 'itf-jwt-auth' ),
+				'Wrong number of segments',
 				ErrorCodes::ERR_WRONG_NUMBER_OF_SEGMENTS
 			);
 		}
 		list( $headb64, $bodyb64, $cryptob64 ) = $tks;
 		if ( null === ( $header = static::jsonDecode( static::urlsafeB64Decode( $headb64 ) ) ) ) {
 			throw new Exception(
-				__( 'Invalid header encoding', 'itf-jwt-auth' ),
+				'Invalid header encoding',
 				ErrorCodes::ERR_INVALID_HEADER_ENCODING
 			);
 		}
 		if ( null === $payload = static::jsonDecode( static::urlsafeB64Decode( $bodyb64 ) ) ) {
 			throw new Exception(
-				__( 'Invalid claims encoding', 'itf-jwt-auth' ),
+				'Invalid claims encoding',
 				ErrorCodes::ERR_INVALID_CLAIMS_ENCODING
 			);
 		}
+		
 		if ( false === ( $sig = static::urlsafeB64Decode( $cryptob64 ) ) ) {
 			throw new Exception(
-				__( 'Invalid signature encoding', 'itf-jwt-auth' ),
+				'Invalid signature encoding',
 				ErrorCodes::ERR_INVALID_SIGNATURE_ENCODING
 			);
 		}
 		if ( empty( $header->alg ) ) {
 			throw new Exception(
-				__( 'Empty algorithm', 'itf-jwt-auth' ),
+				'Empty algorithm',
 				ErrorCodes::ERR_EMPTY_ALGORITHM
 			);
 		}
+		
 		if ( empty( static::$supported_algs[ $header->alg ] ) ) {
 			throw new Exception(
-				__( 'Algorithm not supported', 'itf-jwt-auth' ),
+				'Algorithm not supported',
 				ErrorCodes::ERR_ALGORITHM_NOT_SUPPORTED
 			);
 		}
 		if ( ! in_array( $header->alg, $allowed_algs ) ) {
 			throw new Exception(
-				__( 'Algorithm not allowed', 'itf-jwt-auth' ),
+				'Algorithm not allowed',
 				ErrorCodes::ERR_ALGORITHM_NOT_ALLOWED
 			);
 		}
@@ -101,7 +104,7 @@ class JWT {
 		// Check the signature
 		if ( ! static::verify( "$headb64.$bodyb64", $sig, $key, $header->alg ) ) {
 			throw new Exception(
-				__( 'Signature verification failed', 'itf-jwt-auth' ),
+				'Signature verification failed',
 				ErrorCodes::ERR_SIGNATURE_VERIFICATION_FAILED
 			);
 		}
@@ -110,7 +113,7 @@ class JWT {
 		if ( isset( $payload->nbf ) && $payload->nbf > ( $timestamp + static::$leeway ) ) {
 			throw new Exception(
 				sprintf(
-					__( 'Cannot handle token prior to %s', 'itf-jwt-auth' ),
+					'Cannot handle token prior to %s',
 					date( DateTime::ISO8601, $payload->nbf )
 				),
 				ErrorCodes::ERR_TOKEN_NBF
@@ -122,16 +125,16 @@ class JWT {
 		if ( isset( $payload->iat ) && $payload->iat > ( $timestamp + static::$leeway ) ) {
 			throw new Exception(
 				sprintf(
-					__( 'Cannot handle token prior to %s', 'itf-jwt-auth' ),
+					'Cannot handle token prior to %s',
 					date( DateTime::ISO8601, $payload->iat )
 				),
 				ErrorCodes::ERR_TOKEN_IAT
 			);
-		}
+		} 
 		// Check if this token has expired.
 		if ( isset( $payload->exp ) && ( $timestamp - static::$leeway ) >= $payload->exp ) {
 			throw new Exception(
-				__( 'Expired token', 'itf-jwt-auth' ),
+				'Expired token',
 				ErrorCodes::ERR_TOKEN_EXPIRED
 			);
 		}
@@ -189,7 +192,7 @@ class JWT {
 	public static function sign( $msg, $key, $alg = 'HS256' ) {
 		if ( empty( static::$supported_algs[ $alg ] ) ) {
 			throw new Exception(
-				__( 'Algorithm not supported', 'itf-jwt-auth' ),
+				'Algorithm not supported',
 				ErrorCodes::ERR_ALGORITHM_NOT_SUPPORTED_IN_SIGNATURE
 			);
 		}
@@ -202,7 +205,7 @@ class JWT {
 				$success   = openssl_sign( $msg, $signature, $key, $algorithm );
 				if ( ! $success ) {
 					throw new Exception(
-						__( "OpenSSL unable to sign data", 'itf-jwt-auth' ),
+						"OpenSSL unable to sign data",
 						ErrorCodes::ERR_OPENSSL_SIGN
 					);
 				} else {
@@ -211,7 +214,7 @@ class JWT {
 		}
 
 		throw new Exception(
-			__( "Unsupported sign function", 'itf-jwt-auth' ),
+			"Unsupported sign function",
 			ErrorCodes::ERR_UNSUPPORTED_SIGN_FUNCTION
 		);
 	}
@@ -232,7 +235,7 @@ class JWT {
 	private static function verify( $msg, $signature, $key, $alg ) {
 		if ( empty( static::$supported_algs[ $alg ] ) ) {
 			throw new Exception(
-				__( 'Algorithm not supported', 'itf-jwt-auth' ),
+				'Algorithm not supported',
 				ErrorCodes::ERR_ALGORITHM_NOT_SUPPORTED_VERIFY
 			);
 		}
@@ -248,7 +251,7 @@ class JWT {
 				// returns 1 on success, 0 on failure, -1 on error.
 				throw new Exception(
 					sprintf(
-						__( 'OpenSSL error: %s','itf-jwt-auth' ),
+						'OpenSSL error: %s',
 						openssl_error_string()
 					),
 					ErrorCodes::ERR_OPEN_SSL_VERIFY
@@ -299,7 +302,7 @@ class JWT {
 			static::handleJsonError( $errno );
 		} elseif ( $obj === null && $input !== 'null' ) {
 			throw new Exception(
-				__( 'Null result with non-null input', 'itf-jwt-auth' ),
+				'Null result with non-null input',
 				ErrorCodes::ERR_JSON_DECODE_NON_NULL_INPUT
 			);
 		}
@@ -322,7 +325,7 @@ class JWT {
 			static::handleJsonError( $errno );
 		} elseif ( $json === 'null' && $input !== null ) {
 			throw new Exception(
-				__( 'Null result with non-null input', 'itf-jwt-auth' ),
+				'Null result with non-null input',
 				ErrorCodes::ERR_JSON_ENCODE_NON_NULL_INPUT
 			);
 		}
@@ -368,16 +371,16 @@ class JWT {
 	 */
 	private static function handleJsonError( $errno ) {
 		$messages = [
-			JSON_ERROR_DEPTH          => __( 'Maximum stack depth exceeded', 'itf-jwt-auth' ),
-			JSON_ERROR_STATE_MISMATCH => __( 'Invalid or malformed JSON', 'itf-jwt-auth' ),
-			JSON_ERROR_CTRL_CHAR      => __( 'Unexpected control character found', 'itf-jwt-auth' ),
-			JSON_ERROR_SYNTAX         => __( 'Syntax error, malformed JSON', 'itf-jwt-auth' ),
-			JSON_ERROR_UTF8           => __( 'Malformed UTF-8 characters', 'itf-jwt-auth' ) //PHP >= 5.3.3
+			JSON_ERROR_DEPTH          => 'Maximum stack depth exceeded',
+			JSON_ERROR_STATE_MISMATCH => 'Invalid or malformed JSON',
+			JSON_ERROR_CTRL_CHAR      => 'Unexpected control character found',
+			JSON_ERROR_SYNTAX         => 'Syntax error, malformed JSON',
+			JSON_ERROR_UTF8           => 'Malformed UTF-8 characters' //PHP >= 5.3.3
 		];
 		throw new Exception(
 			isset( $messages[ $errno ] )
 				? $messages[ $errno ]
-				: sprintf( __( 'Unknown JSON error: %s', 'itf-jwt-auth' ), $errno ),
+				: sprintf( 'Unknown JSON error: %s', $errno ),
 			ErrorCodes::ERR_UNKNOWN_ERROR
 		);
 	}
