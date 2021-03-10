@@ -1,0 +1,19 @@
+{
+    "name": "rajsoft/itfjwt",
+    "description": "Jwt token creation with custome data",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Raj Kumar",
+            "email": "rajwebsoft@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "autoload": {
+        "psr-4": {
+            "Itfosters\\ItfJwt\\": "src/"
+        }
+    },
+    "require": {}
+}
